@@ -10,9 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +38,9 @@ import com.emilfahlgren.todoapp.ui.theme.TodoAppTheme
 class MainActivity : ComponentActivity() {
 
     private val viewModel by viewModels<TodoViewModel>()
+//    private val days = listOf(
+//        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+//    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +48,7 @@ class MainActivity : ComponentActivity() {
             TodoAppTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     MainScreen(viewModel)
+
                 }
             }
         }
@@ -49,12 +57,26 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen(viewModel: TodoViewModel) {
-
     var newItemTitle by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
+    var selectedDay by remember { mutableStateOf("Monday") }
+    var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        TodoList(viewModel.todoList)
+        val days = listOf(
+            "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+        )
+
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(days) { day ->
+                ExpandableCard(title = day, content = {
+                    val tasks = viewModel.todoMap.value[day] ?: emptyList()
+                    tasks.forEach { task ->
+                        TodoRow(task)
+                    }
+                })
+            }
+        }
 
         FloatingActionButton(
             onClick = {
@@ -78,18 +100,32 @@ fun MainScreen(viewModel: TodoViewModel) {
 
         if (showDialog) {
             Dialog(onDismissRequest = { showDialog = false }) {
-                Column {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
                     TextField(
                         value = newItemTitle,
                         label = { Text("Enter new task...") },
                         onValueChange = { newItemTitle = it },
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    TextButton(onClick = { expanded = !expanded }) {
+                        Text("Select Day: $selectedDay")
+                    }
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        days.forEach { day ->
+                            DropdownMenuItem(onClick = {
+                                selectedDay = day
+                                expanded = false
+                            }, text = { Text(text = day) })
+                        }
+                    }
+
                     Row {
                         TextButton(onClick = {
                             showDialog = false
                             if (newItemTitle.isNotBlank()) {
-                                viewModel.addTodoItem(newItemTitle)
+                                viewModel.addTodoItem(newItemTitle, selectedDay)
                                 newItemTitle = ""
                             }
                         }) {

@@ -1,16 +1,27 @@
 package com.emilfahlgren.todoapp
 
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 
 class TodoViewModel : ViewModel() {
-    val todoList = mutableStateListOf<TodoItem>()
 
-    fun addTodoItem(title: String) {
-        todoList.add(TodoItem(title = title))
+    private val _todoMap = mutableStateOf<Map<String, List<TodoItem>>>(emptyMap())
+    val todoMap: State<Map<String, List<TodoItem>>> = _todoMap
+
+    fun addTodoItem(title: String, day: String) {
+        val newItem = TodoItem(title = title, day = day)
+        val currentDayTasks = _todoMap.value[day] ?: emptyList()
+        val updatedTasks = currentDayTasks + newItem
+
+        _todoMap.value = _todoMap.value.toMutableMap().apply {
+            put(day, updatedTasks)
+        }
     }
 
     fun clearTodoItems() {
-        todoList.removeAll{it.isChecked.value}
+        _todoMap.value = _todoMap.value.mapValues { (_, tasks) ->
+            tasks.filterNot { it.isChecked.value }
+        }
     }
 }

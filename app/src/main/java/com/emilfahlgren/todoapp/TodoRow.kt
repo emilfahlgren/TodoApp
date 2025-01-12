@@ -30,14 +30,11 @@ fun TodoRow(todoItem: TodoItem) {
             text = todoItem.title,
             modifier = Modifier.weight(1f),
             style = textStyle,
-            fontSize = 20.sp
+            fontSize = 16.sp
 
         )
-        Checkbox(
-            checked = todoItem.isChecked.value,
-            onCheckedChange =  { checkedStatus ->
-                todoItem.isChecked.value = checkedStatus
-            }
-        )
+        Checkbox(checked = todoItem.isChecked.value, onCheckedChange = { checkedStatus ->
+            todoItem.isChecked.value = checkedStatus
+        })
     }
 }
