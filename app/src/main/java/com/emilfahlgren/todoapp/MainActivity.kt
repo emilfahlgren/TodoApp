@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,42 +69,54 @@ fun MainScreen(viewModel: TodoViewModel) {
             "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
         )
 
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(days) { day ->
-                ExpandableCard(title = day, content = {
-                    val tasks = viewModel.todoMap.value[day] ?: emptyList()
-                    tasks.forEach { task ->
-                        TodoRow(task)
-                    }
-                })
+        Column(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(bottom = 80.dp)
+            ) {
+                items(days) { day ->
+                    ExpandableCard(title = day, content = {
+                        val tasks = viewModel.todoMap.value[day] ?: emptyList()
+                        tasks.forEach { task ->
+                            TodoRow(task)
+                        }
+                    })
+                }
             }
         }
 
-        FloatingActionButton(
-            onClick = {
-                showDialog = true
-            }, modifier = Modifier
-                .align(Alignment.BottomEnd)
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primary)
                 .padding(16.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add")
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                FloatingActionButton(
+                    onClick = { viewModel.clearTodoItems() },
+                    modifier = Modifier
+                        .padding(end = 16.dp)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = "Clear")
+                }
 
-        FloatingActionButton(
-            onClick = {
-                viewModel.clearTodoItems()
-            }, modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(16.dp)
-        ) {
-            Icon(Icons.Default.Delete, contentDescription = "Clear")
+                FloatingActionButton(
+                    onClick = { showDialog = true },
+                    modifier = Modifier
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add")
+                }
+            }
         }
 
         if (showDialog) {
             Dialog(onDismissRequest = { showDialog = false }) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     TextField(
                         value = newItemTitle,
                         label = { Text("Enter new task...") },
@@ -132,9 +146,7 @@ fun MainScreen(viewModel: TodoViewModel) {
                             Text("Add", style = MaterialTheme.typography.bodyMedium)
                         }
 
-                        TextButton(onClick = {
-                            showDialog = false
-                        }) {
+                        TextButton(onClick = { showDialog = false }) {
                             Text("Cancel", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
